@@ -5,17 +5,8 @@ import (
 
 	"github.com/nightexcessive/hal"
 	_ "github.com/nightexcessive/hal-mumble"
-	"github.com/nightexcessive/hal/handler"
 	_ "github.com/nightexcessive/hal/store/memory"
 )
-
-// HAL is just another Go package, which means you are free to organize things
-// however you deem best.
-
-// You can define your handlers in the same file...
-var pingHandler = hal.Hear(`ping`, func(res *hal.Response) error {
-	return res.Send("PONG")
-})
 
 func run() int {
 	robot, err := hal.NewRobot()
@@ -24,45 +15,18 @@ func run() int {
 		return 1
 	}
 
-	// Or define them inside another function...
-	fooHandler := hal.Respond(`foo`, func(res *hal.Response) error {
-		return res.Send("BAR")
-	})
-
-	tableFlipHandler := &hal.Handler{
-		Method:  hal.HEAR,
-		Pattern: `tableflip`,
-		Run: func(res *hal.Response) error {
-			return res.Send(`(╯°□°）╯︵ ┻━┻`)
-		},
-	}
-
 	robot.Handle(
-		pingHandler,
-		fooHandler,
-		tableFlipHandler,
-
-		// Or stick them in an entirely different package, and reference them
-		// exactly in the way you would expect.
-		handler.Ping,
-
-		// Or use a hal.Handler structure complete with usage...
 		&hal.Handler{
-			Method:  hal.RESPOND,
-			Pattern: `SYN`,
-			Usage:   `hal syn - replies with "ACK"`,
+			Method:  hal.HEAR,
+			Pattern: `tableflip`,
 			Run: func(res *hal.Response) error {
-				return res.Reply("ACK")
+				return res.Send(`(╯°□°）╯︵ ┻━┻`)
 			},
 		},
 
-		// Or even inline!
-		hal.Hear(`yo`, func(res *hal.Response) error {
-			return res.Send("lo")
-		}),
-
-		hal.Enter(func(res *hal.Response) error {
-			return res.Reply("Hello!")
+		hal.Respond(`speak (.*)`, func(res *hal.Response) error {
+			hal.Logger.Debugf("Got speak: %#v", res.Match)
+			return res.Play(res.Match[1])
 		}),
 	)
 
