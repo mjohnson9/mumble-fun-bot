@@ -16,6 +16,7 @@ func run() int {
 	}
 
 	robot.Handle(
+
 		&hal.Handler{
 			Method:  hal.HEAR,
 			Pattern: `tableflip`,
@@ -25,8 +26,11 @@ func run() int {
 		},
 
 		hal.Respond(`speak (.*)`, func(res *hal.Response) error {
-			hal.Logger.Debugf("Got speak: %#v", res.Match)
 			return res.Play(res.Match[1])
+		}),
+
+		hal.Enter(func(res *hal.Response) error {
+			return res.Send("/nom en-US")
 		}),
 	)
 
